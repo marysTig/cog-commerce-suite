@@ -18,7 +18,7 @@ const Contact = () => {
           { icon: Phone, title: "Téléphone", value: "+213 792 42 56 56", href: "tel:+213792425656" },
           { icon: MessageCircle, title: "WhatsApp", value: "Discussion directe", href: "https://wa.me/213792425656" },
           { icon: Mail, title: "Email", value: "contact@cog-chebaa.com", href: "mailto:contact@cog-chebaa.com" },
-          { icon: MapPin, title: "Adresse", value: "Algérie" },
+          { icon: MapPin, title: "Adresse", value: "GMWM+CJ Seddouk, Algérie", href: "https://www.google.com/maps/search/?api=1&query=GMWM%2BCJ+Seddouk" },
           { icon: Clock, title: "Horaires", value: "Sam – Jeu : 08h – 18h" },
         ].map((c, i) => {
           const Inner = (
