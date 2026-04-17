@@ -3,8 +3,22 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { SiteLayout } from "@/components/site/SiteLayout";
+
+import Index from "./pages/Index";
+import Catalogue from "./pages/Catalogue";
+import Categories from "./pages/Categories";
+import ProductDetail from "./pages/ProductDetail";
+import Contact from "./pages/Contact";
+import NotFound from "./pages/NotFound";
+
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminOrders from "./pages/admin/AdminOrders";
 
 const queryClient = new QueryClient();
 
@@ -12,13 +26,29 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner theme="dark" position="top-right" />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route element={<SiteLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/catalogue" element={<Catalogue />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/produit/:slug" element={<ProductDetail />} />
+              <Route path="/contact" element={<Contact />} />
+            </Route>
+
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="produits" element={<AdminProducts />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="commandes" element={<AdminOrders />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
