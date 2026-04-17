@@ -3,9 +3,20 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Phone, MapPin, MessageCircle } from "lucide-react";
+import { Loader2, Phone, MapPin, MessageCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Order = Tables<"orders">;
 
@@ -37,6 +48,12 @@ const AdminOrders = () => {
     const { error } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Statut mis à jour"); load(); }
+  };
+
+  const deleteOrder = async (id: string) => {
+    const { error } = await supabase.from("orders").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Commande supprimée"); load(); }
   };
 
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
@@ -106,6 +123,27 @@ const AdminOrders = () => {
                       <MessageCircle className="h-3.5 w-3.5" /> Contacter
                     </a>
                   </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="w-full">
+                        <Trash2 className="h-3.5 w-3.5" /> Supprimer
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer cette commande ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action est irréversible. La commande de {o.customer_name} sera définitivement supprimée.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteOrder(o.id)} className="bg-destructive hover:bg-destructive/90">
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </div>
