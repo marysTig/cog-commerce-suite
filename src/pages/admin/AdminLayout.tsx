@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LayoutDashboard, Package, FolderTree, ShoppingBag, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo-cog.png";
+import logo from "@/assets/logo-cqg.png";
 
 const links = [
   { to: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard, end: true },

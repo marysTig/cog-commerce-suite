@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/logo-cog.png";
+import logo from "@/assets/logo-cqg.png";
 
 const AdminLogin = () => {
   const { signIn, user, isAdmin, loading } = useAuth();
