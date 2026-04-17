@@ -1,20 +1,14 @@
 import { Link } from "react-router-dom";
 import { Phone, MapPin, Mail } from "lucide-react";
-import logo from "@/assets/logo-cog.png";
+import logo from "@/assets/logo-cqg.png";
 
 export const SiteFooter = () => {
   return (
     <footer className="border-t border-border/60 mt-32 bg-onyx">
       <div className="container py-16 grid gap-12 md:grid-cols-4">
         <div className="md:col-span-1">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="COG" className="h-14 w-14" width={56} height={56} loading="lazy" />
-            <div>
-              <div className="font-display text-xl font-bold text-gold">COG</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                Comptoir Quincaillerie
-              </div>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="CQG — Comptoir Quincaillerie Générale" className="h-20 w-auto" height={80} loading="lazy" />
           </Link>
           <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
             L'excellence de la quincaillerie générale. Des outils premium pour les professionnels et les particuliers exigeants.
