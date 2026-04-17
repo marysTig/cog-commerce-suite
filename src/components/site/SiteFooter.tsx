@@ -44,7 +44,14 @@ export const SiteFooter = () => {
             </li>
             <li className="flex items-start gap-2">
               <MapPin className="h-4 w-4 text-gold mt-0.5 flex-shrink-0" />
-              <span>Algérie</span>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=GMWM%2BCJ+Seddouk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold transition-colors"
+              >
+                GMWM+CJ Seddouk, Algérie
+              </a>
             </li>
           </ul>
         </div>

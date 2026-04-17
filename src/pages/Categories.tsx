@@ -29,11 +29,18 @@ const Categories = () => {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {cats.map((c) => (
-            <Link key={c.id} to={`/catalogue?cat=${c.slug}`} className="group block bg-card border border-border rounded-lg p-8 hover:border-gold/50 hover:shadow-luxe-hover transition-all duration-500">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-gold">{c.count} {c.count > 1 ? "produits" : "produit"}</p>
-              <h2 className="font-display text-3xl mt-3 group-hover:text-gold transition-colors">{c.name}</h2>
-              {c.description && <p className="text-sm text-muted-foreground mt-3">{c.description}</p>}
-              <p className="text-xs text-gold mt-6 uppercase tracking-wider">Explorer →</p>
+            <Link key={c.id} to={`/catalogue?cat=${c.slug}`} className="group block bg-card border border-border rounded-lg overflow-hidden hover:border-gold/50 hover:shadow-luxe-hover transition-all duration-500">
+              {c.image_url && (
+                <div className="aspect-[16/10] overflow-hidden">
+                  <img src={c.image_url} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+              )}
+              <div className="p-8">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gold">{c.count} {c.count > 1 ? "produits" : "produit"}</p>
+                <h2 className="font-display text-3xl mt-3 group-hover:text-gold transition-colors">{c.name}</h2>
+                {c.description && <p className="text-sm text-muted-foreground mt-3">{c.description}</p>}
+                <p className="text-xs text-gold mt-6 uppercase tracking-wider">Explorer →</p>
+              </div>
             </Link>
           ))}
         </div>
