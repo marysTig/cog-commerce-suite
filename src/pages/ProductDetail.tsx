@@ -83,7 +83,7 @@ const ProductDetail = () => {
 
           <div className="mt-6">
             {product.in_stock ? (
-              <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/20">
+              <Badge className="bg-gold/15 text-gold border border-gold/30 hover:bg-gold/15">
                 <Check className="h-3 w-3 mr-1" /> En stock
               </Badge>
             ) : (
