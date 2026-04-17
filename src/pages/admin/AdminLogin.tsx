@@ -33,9 +33,9 @@ const AdminLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-dark-gradient p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <img src={logo} alt="COG" className="h-20 w-20 mx-auto" width={80} height={80} />
+          <img src={logo} alt="CQG — Comptoir Quincaillerie Générale" className="h-24 w-auto mx-auto" height={96} />
           <h1 className="font-display text-3xl text-gold mt-4">Espace Admin</h1>
-          <p className="text-sm text-muted-foreground mt-2">COG Quincaillerie Chebaa</p>
+          <p className="text-sm text-muted-foreground mt-2">Comptoir Quincaillerie Générale</p>
         </div>
 
         <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-8 shadow-luxe space-y-5">
