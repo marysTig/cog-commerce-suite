@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { useState } from "react";
-import logo from "@/assets/logo-cog.png";
+import logo from "@/assets/logo-cqg.png";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -20,17 +20,10 @@ export const SiteHeader = () => {
         <Link to="/" className="flex items-center gap-3 group">
           <img
             src={logo}
-            alt="COG Logo"
-            className="h-12 w-12 transition-transform duration-500 group-hover:rotate-12"
-            width={48}
-            height={48}
+            alt="CQG — Comptoir Quincaillerie Générale"
+            className="h-14 w-auto transition-transform duration-500 group-hover:scale-105"
+            height={56}
           />
-          <div className="hidden sm:block">
-            <div className="font-display text-lg font-bold leading-none text-gold">COG</div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              Quincaillerie Chebaa
-            </div>
-          </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

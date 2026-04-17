@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LayoutDashboard, Package, FolderTree, ShoppingBag, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo-cog.png";
+import logo from "@/assets/logo-cqg.png";
 
 const links = [
   { to: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard, end: true },
@@ -28,12 +28,9 @@ const AdminLayout = () => {
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="h-20 px-6 flex items-center gap-3 border-b border-sidebar-border">
-          <img src={logo} alt="COG" className="h-10 w-10" width={40} height={40} />
-          <div>
-            <div className="font-display font-bold text-gold leading-none">COG</div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Admin</div>
-          </div>
+        <div className="h-20 px-6 flex items-center justify-between gap-3 border-b border-sidebar-border">
+          <img src={logo} alt="CQG" className="h-12 w-auto" height={48} />
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Admin</div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
