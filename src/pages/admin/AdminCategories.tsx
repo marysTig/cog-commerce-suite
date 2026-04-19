@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Loader2, Upload, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, Loader2, Upload, X, Hash, Eye, ExternalLink, FolderTree } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-type Category = Tables<"categories">;
+type Category = Tables<"categories"> & { product_count?: number };
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -26,103 +29,190 @@ const AdminCategories = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("categories").select("*").order("name");
-    setItems(data || []);
-    setLoading(false);
+    try {
+      const { data: categories } = await supabase.from("categories").select("*").order("name");
+      const { data: productCounts } = await supabase.from("products").select("category_id");
+      
+      const countsMap: Record<string, number> = {};
+      productCounts?.forEach(p => {
+        if (p.category_id) {
+          countsMap[p.category_id] = (countsMap[p.category_id] || 0) + 1;
+        }
+      });
+
+      setItems((categories || []).map(c => ({
+        ...c,
+        product_count: countsMap[c.id] || 0
+      })));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { document.title = "Catégories — Admin COG"; load(); }, []);
+  useEffect(() => { 
+    document.title = "Gérer les Univers — Admin COG"; 
+    load(); 
+  }, []);
 
-  const openNew = () => { setEditing(null); setForm({ name: "", description: "", image_url: "" }); setOpen(true); };
-  const openEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, description: c.description ?? "", image_url: c.image_url ?? "" }); setOpen(true); };
+  const openNew = () => { 
+    setEditing(null); 
+    setForm({ name: "", description: "", image_url: "" }); 
+    setOpen(true); 
+  };
+  
+  const openEdit = (c: Category) => { 
+    setEditing(c); 
+    setForm({ name: c.name, description: c.description ?? "", image_url: c.image_url ?? "" }); 
+    setOpen(true); 
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image > 5MB"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("L'image ne doit pas dépasser 5Mo"); return; }
+    
     setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `categories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file);
-    if (error) { toast.error(error.message); setUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(path);
-    setForm((f) => ({ ...f, image_url: publicUrl }));
-    setUploading(false);
-    toast.success("Image téléchargée");
+    try {
+      const { uploadToCloudinary } = await import("@/lib/cloudinary");
+      const url = await uploadToCloudinary(file);
+      setForm((f) => ({ ...f, image_url: url }));
+      toast.success("Image mise en ligne sur Cloudinary");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
+    
     setSaving(true);
-    const payload = {
-      name: form.name.trim(),
-      slug: editing?.slug || slugify(form.name),
-      description: form.description.trim() || null,
-      image_url: form.image_url || null,
-    };
-    const { error } = editing
-      ? await supabase.from("categories").update(payload).eq("id", editing.id)
-      : await supabase.from("categories").insert(payload);
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(editing ? "Catégorie mise à jour" : "Catégorie créée");
-    setOpen(false);
-    load();
+    try {
+      const payload = {
+        name: form.name.trim(),
+        slug: editing?.slug || slugify(form.name),
+        description: form.description.trim() || null,
+        image_url: form.image_url || null,
+      };
+      
+      const { error } = editing
+        ? await supabase.from("categories").update(payload).eq("id", editing.id)
+        : await supabase.from("categories").insert(payload);
+        
+      if (error) throw error;
+      
+      toast.success(editing ? "Catégorie mise à jour" : "Nouvelle catégorie créée");
+      setOpen(false);
+      load();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (c: Category) => {
-    if (!confirm(`Supprimer "${c.name}" ?`)) return;
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'univers "${c.name}" ? Cette action est irréversible.`)) return;
+    
     const { error } = await supabase.from("categories").delete().eq("id", c.id);
-    if (error) toast.error(error.message);
-    else { toast.success("Supprimée"); load(); }
+    if (error) {
+      toast.error("Suppression impossible : assurez-vous qu'aucun produit n'est lié à cette catégorie.");
+    } else { 
+      toast.success("Catégorie supprimée"); 
+      load(); 
+    }
   };
 
   return (
-    <div className="p-8 max-w-5xl">
-      <header className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 max-w-7xl animate-fade-in">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8 md:mb-12">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold mb-2">Organisation</p>
-          <h1 className="font-display text-4xl">Catégories</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="h-px w-6 bg-gold" />
+            <p className="text-[10px] uppercase tracking-[0.3em] text-gold font-medium">Organisation</p>
+          </div>
+          <h1 className="font-display text-3xl md:text-4xl font-bold">Catégories & Univers</h1>
         </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button variant="gold" onClick={openNew}><Plus className="h-4 w-4" /> Ajouter</Button></DialogTrigger>
-          <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle className="font-display text-2xl text-gold">{editing ? "Modifier" : "Nouvelle"} catégorie</DialogTitle></DialogHeader>
-            <form onSubmit={save} className="space-y-4">
-              <div>
-                <Label>Nom *</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <DialogTrigger asChild>
+            <Button variant="gold" onClick={openNew} className="shadow-gold-glow">
+              <Plus className="h-4 w-4 mr-2" /> Nouvel Univers
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-card glass-card border-gold/10 sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-display text-2xl text-gold">
+                {editing ? "Modifier l'univers" : "Créer un nouvel univers"}
+              </DialogTitle>
+              <DialogDescription>
+                Définissez un nom et une image pour organiser vos produits.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={save} className="space-y-6 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="cat-name">Nom de la catégorie *</Label>
+                <Input 
+                  id="cat-name"
+                  placeholder="Ex: Outillage Électroportatif"
+                  value={form.name} 
+                  onChange={(e) => setForm({ ...form, name: e.target.value })} 
+                  required 
+                  className="bg-background/50 border-white/5 focus:border-gold/50"
+                />
               </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
+              <div className="space-y-2">
+                <Label htmlFor="cat-desc">Description</Label>
+                <Textarea 
+                  id="cat-desc"
+                  placeholder="Brève présentation de cet univers..."
+                  rows={3} 
+                  value={form.description} 
+                  onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                  className="bg-background/50 border-white/5 focus:border-gold/50"
+                />
               </div>
-              <div>
-                <Label>Photo de la catégorie</Label>
+
+              <div className="space-y-3">
+                <Label>Image de couverture</Label>
                 {form.image_url ? (
-                  <div className="relative mt-2 group">
-                    <img src={form.image_url} alt="Aperçu" className="w-full h-48 object-cover rounded-md border border-border" />
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, image_url: "" })}
-                      className="absolute top-2 right-2 bg-background/80 backdrop-blur p-1.5 rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                  <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video">
+                    <img src={form.image_url} alt="Aperçu" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setForm({ ...form, image_url: "" })}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <label className="mt-2 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-md py-8 cursor-pointer hover:border-gold/50 transition-colors">
-                    {uploading ? <Loader2 className="h-6 w-6 animate-spin text-gold" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
-                    <span className="text-sm text-muted-foreground">{uploading ? "Téléchargement..." : "Cliquer pour télécharger"}</span>
+                  <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/10 rounded-xl py-12 cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all group">
+                    <div className="p-3 bg-white/5 rounded-full group-hover:bg-gold/10 transition-colors">
+                      {uploading ? <Loader2 className="h-6 w-6 animate-spin text-gold" /> : <Upload className="h-6 w-6 text-muted-foreground group-hover:text-gold" />}
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">{uploading ? "Téléversement..." : "Cliquer pour envoyer"}</p>
+                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG jusqu'à 5Mo</p>
+                    </div>
                     <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
                 )}
               </div>
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">Annuler</Button>
-                <Button type="submit" variant="gold" disabled={saving || uploading} className="flex-1">
-                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}Enregistrer
+
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+                  Annuler
+                </Button>
+                <Button type="submit" variant="gold" disabled={saving || uploading} className="flex-1 shadow-gold-glow">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {editing ? "Mettre à jour" : "Créer l'univers"}
                 </Button>
               </div>
             </form>
@@ -131,24 +221,55 @@ const AdminCategories = () => {
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
+        <div className="flex justify-center py-32"><Loader2 className="h-10 w-10 animate-spin text-gold" /></div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-border rounded-lg">
-          <p className="text-muted-foreground">Aucune catégorie pour l'instant.</p>
+        <div className="text-center py-24 border border-dashed border-white/10 rounded-3xl bg-card/30">
+          <FolderTree className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+          <p className="font-display text-xl text-muted-foreground">Aucun univers pour l'instant.</p>
+          <Button variant="link" onClick={openNew} className="text-gold mt-2">Créer votre première catégorie</Button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((c) => (
-            <div key={c.id} className="bg-card border border-border rounded-lg overflow-hidden hover:border-gold/40 transition-colors">
-              {c.image_url && (
-                <img src={c.image_url} alt={c.name} className="w-full h-40 object-cover" loading="lazy" />
-              )}
-              <div className="p-6">
-                <h3 className="font-display text-xl text-foreground">{c.name}</h3>
-                {c.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{c.description}</p>}
-                <div className="mt-4 flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(c)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
-                  <Button variant="ghost" size="sm" onClick={() => remove(c)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+            <div 
+              key={c.id} 
+              className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-gold/30 hover:shadow-luxe-hover transition-all duration-500 flex flex-col"
+            >
+              <div className="relative aspect-video bg-muted overflow-hidden">
+                {c.image_url ? (
+                  <img src={c.image_url} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-steel-gradient">
+                    <FolderTree className="h-10 w-10 text-gold/20" />
+                  </div>
+                )}
+                <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                   <Button asChild variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg">
+                      <Link to={`/categories`} target="_blank"><Eye className="h-3.5 w-3.5" /></Link>
+                   </Button>
+                </div>
+                <div className="absolute bottom-4 left-4">
+                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-md border border-white/10 text-[10px] uppercase font-bold tracking-widest">
+                    <Hash className="h-3 w-3 mr-1 text-gold" /> {c.product_count} produits
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-display text-2xl text-foreground group-hover:text-gold transition-colors">{c.name}</h3>
+                  {c.description && <p className="text-sm text-muted-foreground mt-3 line-clamp-2 leading-relaxed italic">{c.description}</p>}
+                </div>
+                
+                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => openEdit(c)} className="hover:text-gold">
+                      <Pencil className="h-3.5 w-3.5 mr-2" /> Modifier
+                    </Button>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => remove(c)} className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>

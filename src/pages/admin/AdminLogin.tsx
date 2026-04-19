@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-cqg.png";
 
@@ -60,6 +60,13 @@ const AdminLogin = () => {
             Se connecter
           </Button>
         </form>
+
+        <div className="mt-8 text-center">
+          <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-gold transition-colors gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Retour au site
+          </Link>
+        </div>
       </div>
     </div>
   );

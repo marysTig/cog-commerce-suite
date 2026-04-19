@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Loader2, MessageCircle, Check } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { useCart } from "@/contexts/CartContext";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 const WHATSAPP_NUMBER = "213792425656";
 
@@ -21,36 +23,47 @@ const orderSchema = z.object({
 });
 
 interface Props {
-  product: Tables<"products">;
+  product?: Tables<"products">; // Optional if isCart is true
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  isCart?: boolean;
 }
 
-export const OrderModal = ({ product, open, onOpenChange }: Props) => {
+export const OrderModal = ({ product, open, onOpenChange, isCart }: Props) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const cart = useCart();
   const [form, setForm] = useState({
     customer_name: "",
     customer_phone: "",
     customer_address: "",
-    quantity: 1,
+    quantity: 1, // Used for direct purchase
     notes: "",
   });
 
-  const total = Number(product.price) * form.quantity;
+  const total = isCart ? cart.totalPrice : (product ? Number(product.price) * form.quantity : 0);
 
-  const buildWhatsAppMessage = () =>
-    encodeURIComponent(
-      `*Nouvelle commande COG*\n\n` +
-      `🔹 Produit : ${product.name}\n` +
-      `🔹 Quantité : ${form.quantity}\n` +
-      `🔹 Prix unitaire : ${Number(product.price).toLocaleString("fr-FR")} DA\n` +
-      `🔹 *Total : ${total.toLocaleString("fr-FR")} DA*\n\n` +
-      `👤 ${form.customer_name}\n` +
-      `📞 ${form.customer_phone}\n` +
-      `📍 ${form.customer_address}` +
-      (form.notes ? `\n📝 ${form.notes}` : "")
-    );
+  const buildWhatsAppMessage = () => {
+    let msg = `*Nouvelle commande COG*\n\n`;
+    
+    if (isCart) {
+      cart.items.forEach(item => {
+        msg += `🔸 ${item.product.name} x${item.quantity}\n`;
+      });
+    } else if (product) {
+      msg += `🔹 Produit : ${product.name}\n`;
+      msg += `🔹 Quantité : ${form.quantity}\n`;
+      msg += `🔹 Prix unitaire : ${Number(product.price).toLocaleString("fr-FR")} DA\n`;
+    }
+    
+    msg += `\n🔹 *TOTAL : ${total.toLocaleString("fr-FR")} DA*\n\n`;
+    msg += `👤 ${form.customer_name}\n`;
+    msg += `📞 ${form.customer_phone}\n`;
+    msg += `📍 ${form.customer_address}`;
+    if (form.notes) msg += `\n📝 ${form.notes}`;
+    
+    return encodeURIComponent(msg);
+  };
 
   const submit = async (sendWhatsApp: boolean) => {
     const parsed = orderSchema.safeParse(form);
@@ -60,30 +73,96 @@ export const OrderModal = ({ product, open, onOpenChange }: Props) => {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("orders").insert({
-      product_id: product.id,
-      product_name: product.name,
-      product_price: product.price,
+    
+    // Create the order header
+    const { data: orderData, error: orderError } = await supabase.from("orders").insert({
       customer_name: parsed.data.customer_name,
       customer_phone: parsed.data.customer_phone,
       customer_address: parsed.data.customer_address,
-      quantity: parsed.data.quantity,
+      quantity: isCart ? cart.totalItems : parsed.data.quantity,
       total,
       notes: parsed.data.notes || null,
-    });
-    setLoading(false);
+      // Legacy fields for backward compatibility/single items
+      product_id: isCart ? null : product?.id,
+      product_name: isCart ? `Panier (${cart.totalItems} articles)` : product?.name,
+      product_price: isCart ? 0 : product?.price,
+    }).select().single();
 
-    if (error) {
-      toast.error("Erreur lors de l'enregistrement: " + error.message);
+    if (orderError) {
+      setLoading(false);
+      toast.error("Erreur commande: " + orderError.message);
       return;
     }
 
+    // Insert order items
+    const itemsToInsert = isCart 
+      ? cart.items.map(item => ({
+          order_id: orderData.id,
+          product_id: item.product.id,
+          product_name: item.product.name,
+          product_price: item.product.price,
+          quantity: item.quantity,
+          total: Number(item.product.price) * item.quantity
+        }))
+      : [{
+          order_id: orderData.id,
+          product_id: product?.id,
+          product_name: product?.name,
+          product_price: product?.price,
+          quantity: parsed.data.quantity,
+          total: total
+        }];
+
+    const { error: itemsError } = await supabase.from("order_items").insert(itemsToInsert);
+    
+    if (itemsError) {
+      console.error("Error inserting order items:", itemsError);
+    }
+
+    // Decrement stock for all items
+    const stockPromises = itemsToInsert.map(item => 
+      supabase.rpc('decrement_product_stock', {
+        product_id: item.product_id,
+        qty_to_decrement: item.quantity
+      })
+    );
+    
+    await Promise.all(stockPromises);
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    
+    // Escape risky markdown chars from user inputs (specifically for traditional Markdown mode)
+    const escapeMd = (str: string) => str ? str.replace(/[_*[\]`]/g, '\\$&') : '';
+
+    // Build cart items bullet points safely
+    const productsList = itemsToInsert
+      .map(item => `🔸 ${escapeMd(item.product_name || '')} (x${item.quantity})`)
+      .join('\n');
+      
+    const telegramMessage = `📦 *Nouvelle Commande !*
+    
+👤 *Client:* ${escapeMd(parsed.data.customer_name)}
+📞 *Téléphone:* ${escapeMd(parsed.data.customer_phone)}
+📍 *Adresse:* ${escapeMd(parsed.data.customer_address)}
+
+🛒 *Produits:*
+${productsList}
+
+💰 *Montant Total:* ${total.toLocaleString("fr-FR")} DA
+
+🔗 ${origin}/admin/commandes`;
+
+    sendTelegramMessage(telegramMessage);
+
+    setLoading(false);
     setSuccess(true);
     toast.success("Commande enregistrée !");
 
     if (sendWhatsApp) {
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${buildWhatsAppMessage()}`, "_blank");
     }
+
+    if (isCart) cart.clearCart();
 
     setTimeout(() => {
       onOpenChange(false);
@@ -96,9 +175,13 @@ export const OrderModal = ({ product, open, onOpenChange }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-gold">Commander</DialogTitle>
+          <DialogTitle className="font-display text-2xl text-gold">
+            {isCart ? "Finaliser la commande" : "Achat Direct"}
+          </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {product.name} — {Number(product.price).toLocaleString("fr-FR")} DA
+            {isCart 
+              ? `Votre panier contient ${cart.totalItems} articles.` 
+              : `${product?.name} — ${Number(product?.price).toLocaleString("fr-FR")} DA`}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,10 +209,12 @@ export const OrderModal = ({ product, open, onOpenChange }: Props) => {
               <Label htmlFor="address">Adresse de livraison *</Label>
               <Textarea id="address" rows={2} value={form.customer_address} onChange={(e) => setForm({ ...form, customer_address: e.target.value })} required />
             </div>
-            <div>
-              <Label htmlFor="qty">Quantité *</Label>
-              <Input id="qty" type="number" min={1} max={1000} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })} required />
-            </div>
+            {!isCart && (
+              <div>
+                <Label htmlFor="qty">Quantité *</Label>
+                <Input id="qty" type="number" min={1} max={1000} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })} required />
+              </div>
+            )}
             <div>
               <Label htmlFor="notes">Notes (optionnel)</Label>
               <Textarea id="notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />

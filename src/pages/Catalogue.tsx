@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Search, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Product = Tables<"products"> & { categories?: { name: string } | null };
 
@@ -45,34 +46,57 @@ const Catalogue = () => {
   };
 
   return (
-    <div className="container py-12 md:py-20">
-      <header className="mb-12">
-        <p className="text-xs uppercase tracking-[0.3em] text-gold mb-3">Catalogue</p>
-        <h1 className="font-display text-5xl md:text-6xl">Tous nos produits</h1>
-        <p className="text-muted-foreground mt-4 max-w-2xl">Outillage, matériaux et accessoires sélectionnés avec exigence.</p>
+    <div className="container py-12 md:py-20 animate-fade-in">
+      <header className="mb-16">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="h-px w-8 bg-gold" />
+          <p className="text-xs uppercase tracking-[0.3em] text-gold">Catalogue</p>
+        </div>
+        <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight">
+          L'excellence <span className="text-gold">partout</span><br />
+          <span className="italic font-light">en Algérie.</span>
+        </h1>
+        <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">
+          Outillage professionnel, matériaux de haute qualité et accessoires sélectionnés avec la plus grande exigence.
+        </p>
       </header>
 
-      <div className="flex flex-col lg:flex-row gap-4 mb-10">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col gap-8 mb-16">
+        <div className="relative group max-w-2xl">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-gold transition-colors" />
           <Input
-            placeholder="Rechercher un produit..."
+            placeholder="Rechercher une référence, un outil..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-11 h-12 bg-card border-border"
+            className="pl-12 h-14 bg-card/40 border-border glass-input rounded-xl text-lg w-full"
           />
         </div>
-      </div>
 
-      <div className="flex flex-wrap gap-2 mb-10">
-        <Button variant={!activeCat ? "gold" : "gold-outline"} size="sm" onClick={() => setCat("")}>
-          Toutes
-        </Button>
-        {categories.map((c) => (
-          <Button key={c.id} variant={activeCat === c.slug ? "gold" : "gold-outline"} size="sm" onClick={() => setCat(c.slug)}>
-            {c.name}
+        <div className="flex flex-nowrap md:flex-wrap gap-2 md:gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x -mx-4 px-4 md:mx-0 md:px-0">
+          <Button 
+            variant={!activeCat ? "gold" : "outline"} 
+            className={cn(
+              "rounded-full px-6 transition-all duration-300 whitespace-nowrap snap-start shrink-0",
+              !activeCat ? "shadow-gold-glow" : "hover:border-gold/50"
+            )}
+            onClick={() => setCat("")}
+          >
+            Toute la collection
           </Button>
-        ))}
+          {categories.map((c) => (
+            <Button 
+              key={c.id} 
+              variant={activeCat === c.slug ? "gold" : "outline"}
+              className={cn(
+                "rounded-full px-6 transition-all duration-300 whitespace-nowrap snap-start shrink-0",
+                activeCat === c.slug ? "shadow-gold-glow" : "hover:border-gold/50"
+              )}
+              onClick={() => setCat(c.slug)}
+            >
+              {c.name}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

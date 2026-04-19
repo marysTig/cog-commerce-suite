@@ -20,34 +20,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (uid: string) => {
-    const { data } = await supabase
+    console.log("Checking admin role for UID:", uid);
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", uid)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+      .eq("role", "admin");
+    
+    if (error) {
+      console.error("Error checking admin role:", error);
+    }
+    
+    console.log("Admin role response:", data);
+    setIsAdmin(Array.isArray(data) && data.length > 0);
+    return Array.isArray(data) && data.length > 0;
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+    let mounted = true;
+
+    async function syncAuth(sess: Session | null) {
+      if (!mounted) return;
+      
       setSession(sess);
       setUser(sess?.user ?? null);
+      
       if (sess?.user) {
-        setTimeout(() => checkAdmin(sess.user.id), 0);
+        setLoading(true);
+        console.log("Syncing admin for:", sess.user.id);
+        await checkAdmin(sess.user.id);
+        if (mounted) setLoading(false);
       } else {
         setIsAdmin(false);
+        setLoading(false);
       }
-    });
+    }
 
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) checkAdmin(sess.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (mounted) syncAuth(sess);
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+      if (mounted) syncAuth(sess);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
