@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Pencil, Trash2, Loader2, ImageOff } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
@@ -90,7 +91,6 @@ const AdminProducts = () => {
   const handleImage = async (file: File) => {
     setUploading(true);
     try {
-      const { uploadToCloudinary } = await import("@/lib/cloudinary");
       const url = await uploadToCloudinary(file);
       setForm((f: any) => ({ ...f, image_urls: [...(f.image_urls || []), url] }));
     } catch (error: any) {

@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, Loader2, Upload, X, Hash, Eye, ExternalLink, Fold
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type Category = Tables<"categories"> & { product_count?: number };
 
@@ -73,7 +74,6 @@ const AdminCategories = () => {
     
     setUploading(true);
     try {
-      const { uploadToCloudinary } = await import("@/lib/cloudinary");
       const url = await uploadToCloudinary(file);
       setForm((f) => ({ ...f, image_url: url }));
       toast.success("Image mise en ligne sur Cloudinary");
