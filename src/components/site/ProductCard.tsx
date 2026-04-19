@@ -83,7 +83,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         )}
       </div>
 
-      <div className="p-6 relative">
+      <div className="p-4 sm:p-6 relative">
         <div className="absolute top-0 right-6 -translate-y-1/2 p-2 bg-card rounded-full border border-border opacity-0 group-hover:opacity-100 group-hover:translate-y-[-60%] group-hover:border-gold/40 transition-all duration-500 shadow-xl shadow-gold/10 z-20 hidden md:flex items-center justify-center group-hover:scale-110">
           <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -94,12 +94,12 @@ export const ProductCard = ({ product }: { product: Product }) => {
             {product.categories.name}
           </p>
         )}
-        <h3 className="font-display text-lg font-semibold leading-tight text-foreground group-hover:text-gold transition-colors line-clamp-2 min-h-[3rem]">
+        <h3 className="font-display text-base sm:text-lg font-semibold leading-tight text-foreground group-hover:text-gold transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem]">
           {product.name}
         </h3>
-        <div className="mt-4 flex items-baseline justify-between border-t border-border/50 pt-4 group-hover:border-gold/20 transition-colors duration-500">
+        <div className="mt-3 sm:mt-4 flex items-baseline justify-between border-t border-border/50 pt-3 sm:pt-4 group-hover:border-gold/20 transition-colors duration-500">
           <div className="flex flex-col">
-            <p className="font-display text-2xl text-gold transform group-hover:scale-105 transition-transform origin-left duration-500">
+            <p className="font-display text-lg sm:text-2xl text-gold transform group-hover:scale-105 transition-transform origin-left duration-500">
               {Number(product.price).toLocaleString("fr-FR")}
               <span className="text-xs ml-1 text-muted-foreground font-sans">DA</span>
             </p>

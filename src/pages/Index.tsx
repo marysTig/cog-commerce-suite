@@ -140,7 +140,7 @@ const Index = () => {
               <h2 className="font-display text-4xl md:text-5xl">Produits vedettes</h2>
             </div>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:gap-6 lg:grid-cols-4">
             {featured.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
