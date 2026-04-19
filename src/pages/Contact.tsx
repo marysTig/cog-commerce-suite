@@ -19,7 +19,7 @@ const Contact = () => {
           { icon: MessageCircle, title: "WhatsApp", value: "Discussion directe", href: "https://wa.me/213792425656" },
           { icon: Mail, title: "Email", value: "contact@cog-chebaa.com", href: "mailto:contact@cog-chebaa.com" },
           { icon: MapPin, title: "Adresse", value: "GMWM+CJ Seddouk, Algérie", href: "https://www.google.com/maps/search/?api=1&query=GMWM%2BCJ+Seddouk" },
-          { icon: Clock, title: "Horaires", value: "Sam – Jeu : 08h – 18h" },
+          { icon: Clock, title: "Horaires", value: "Sam – Ven : 08h – 18h" },
         ].map((c, i) => {
           const Inner = (
             <div className="bg-card border border-border rounded-lg p-8 h-full hover:border-gold/40 transition-all duration-500 group">

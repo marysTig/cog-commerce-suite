@@ -54,7 +54,7 @@ export const SiteFooter = () => {
           <h4 className="font-display text-sm uppercase tracking-widest text-gold mb-5">Horaires</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex justify-between"><span>Sam — Jeu</span><span>08:00 — 18:00</span></li>
-            <li className="flex justify-between"><span>Vendredi</span><span>Fermé</span></li>
+            <li className="flex justify-between"><span>Vendredi</span><span>Ouvert</span></li>
           </ul>
         </div>
       </div>
