@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 import Index from "./pages/Index";
 import Catalogue from "./pages/Catalogue";
@@ -34,7 +35,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
-            <Routes>
+              <ScrollToTop />
+              <Routes>
               <Route element={<SiteLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/catalogue" element={<Catalogue />} />
