@@ -5,11 +5,11 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, "dist")));
 
-app.get("*", (req, res) => {
+// Express 5 requires named wildcard: {*splat} instead of just *
+app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-// Passenger needs this
 if (typeof(PhusionPassenger) !== "undefined") {
   PhusionPassenger.configure({ autoInstall: false });
 }
