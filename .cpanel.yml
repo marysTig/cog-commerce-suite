@@ -1,12 +1,6 @@
 ---
 deployment:
   tasks:
-    # ⚠️ TRÈS IMPORTANT: Remplacez "votre_nom_utilisateur_cpanel" par votre VRAI nom d'utilisateur cPanel
-    # Et "ChebaaApp" par le dossier où se trouve votre application Node.js
-    - export DEPLOYPATH=/home/cptzkqcz/repositories/cog-commerce-suite/
-    
-    # On copie les éléments nécessaires pour Node.js et l'application compilée
-    - /bin/cp -R dist $DEPLOYPATH
-    - /bin/cp server.js $DEPLOYPATH
-    - /bin/cp package.json $DEPLOYPATH
-    - /bin/cp package-lock.json $DEPLOYPATH
+    - export DEPLOYPATH=/home/cptzkqcz/public_html/
+    - /bin/cp -R dist/* $DEPLOYPATH
+    - /bin/cp -R dist/.htaccess $DEPLOYPATH 2>/dev/null; true
