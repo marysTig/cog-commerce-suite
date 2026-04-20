@@ -230,7 +230,19 @@ const AdminCategories = () => {
                       <p className="text-sm font-medium">{uploading ? "Téléversement..." : "Cliquer pour envoyer"}</p>
                       <p className="text-xs text-muted-foreground mt-1">PNG, JPG jusqu'à 5Mo</p>
                     </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment"
+                      className="hidden" 
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          toast.info("Déchargement de l'image...");
+                          handleUpload(e);
+                        }
+                      }} 
+                      disabled={uploading} 
+                    />
                   </label>
                 )}
               </div>

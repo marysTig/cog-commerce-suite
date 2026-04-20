@@ -44,6 +44,9 @@ const AdminProducts = () => {
   const [form, setForm] = useState<any>(empty);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 24;
 
   // Persistence logic for mobile (prevents losing form on camera-refresh)
   useEffect(() => {
@@ -70,18 +73,54 @@ const AdminProducts = () => {
     }
   }, [form, open, editing]);
 
-  const load = async () => {
-    setLoading(true);
-    const [{ data: p }, { data: c }] = await Promise.all([
-      supabase.from("products").select("*").order("created_at", { ascending: false }),
+  const load = async (reset = false) => {
+    if (reset) {
+      setPage(0);
+      setLoading(true);
+    }
+    
+    const start = reset ? 0 : page * PAGE_SIZE;
+    const end = start + PAGE_SIZE - 1;
+
+    const [{ data: p, error: pError }, { data: c }] = await Promise.all([
+      supabase.from("products")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(start, end),
       supabase.from("categories").select("*").order("name"),
     ]);
-    setProducts(p || []);
+
+    if (pError) {
+      toast.error("Erreur chargement produits: " + pError.message);
+    } else {
+      if (reset) {
+        setProducts(p || []);
+      } else {
+        setProducts(prev => [...prev, ...(p || [])]);
+      }
+      if (p && p.length < PAGE_SIZE) setHasMore(false);
+      else if (p) setHasMore(true);
+    }
+
     setCategories(c || []);
     setLoading(false);
   };
 
-  useEffect(() => { document.title = "Produits — Admin COG"; load(); }, []);
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    // Trigger load is handled by a separate useEffect or manual call
+  };
+
+  // Trigger load on page change
+  useEffect(() => {
+    if (page > 0) load();
+  }, [page]);
+
+  useEffect(() => { 
+    document.title = "Produits — Admin COG"; 
+    load(true); 
+  }, []);
 
   const openNew = () => { setEditing(null); setForm({ ...empty }); setOpen(true); };
   const openEdit = (p: Product) => {
@@ -159,14 +198,14 @@ const AdminProducts = () => {
     if (error) { toast.error(error.message); return; }
     toast.success(editing ? "Produit mis à jour" : "Produit ajouté");
     setOpen(false);
-    load();
+    load(true);
   };
 
   const remove = async (p: Product) => {
     if (!confirm(`Supprimer "${p.name}" ?`)) return;
     const { error } = await supabase.from("products").delete().eq("id", p.id);
     if (error) toast.error(error.message);
-    else { toast.success("Supprimé"); load(); }
+    else { toast.success("Supprimé"); load(true); }
   };
 
   return (
@@ -211,10 +250,12 @@ const AdminProducts = () => {
                     <input
                       type="file"
                       accept="image/*"
+                      capture="environment"
                       className="hidden"
                       disabled={uploading}
                       onChange={async (e) => {
-                        if (e.target.files) {
+                        if (e.target.files && e.target.files.length > 0) {
+                          toast.info("Déchargement de l'image...");
                           for (let i = 0; i < e.target.files.length; i++) {
                             await handleImage(e.target.files[i]);
                           }
@@ -451,6 +492,15 @@ const AdminProducts = () => {
               </table>
             </div>
           </div>
+
+          {hasMore && (
+            <div className="mt-8 flex justify-center">
+              <Button variant="outline" onClick={loadMore} disabled={loading} className="px-8 border-gold/20 text-gold hover:bg-gold/5">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                Charger plus de produits
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
