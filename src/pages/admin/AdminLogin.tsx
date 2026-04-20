@@ -29,6 +29,13 @@ const AdminLogin = () => {
     else toast.success("Connexion réussie");
   };
 
+  const handleTechnicalReset = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    toast.success("Mémoire locale réinitialisée. Rechargement...");
+    setTimeout(() => window.location.reload(), 1000);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-gradient p-6">
       <div className="w-full max-w-md">
@@ -59,14 +66,40 @@ const AdminLogin = () => {
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             Se connecter
           </Button>
+
+          {user && !isAdmin && !loading && (
+            <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-center animate-in fade-in slide-in-from-top-1 duration-500">
+              <p className="text-sm font-bold text-destructive mb-1">Accès Admin Refusé</p>
+              <p className="text-[10px] text-muted-foreground break-all font-mono">UID: {user.id}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 italic">Ce compte n'a pas les droits nécessaires.</p>
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="mt-2 text-destructive h-auto p-0 text-[10px] uppercase tracking-widest font-bold"
+                onClick={() => window.location.reload()}
+              >
+                Changer de compte
+              </Button>
+            </div>
+          )}
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 flex flex-col items-center gap-4">
           <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-gold transition-colors gap-2">
             <ArrowLeft className="h-4 w-4" />
             Retour au site
           </Link>
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-[10px] text-muted-foreground/30 hover:text-destructive transition-colors uppercase tracking-[0.2em] font-bold"
+            onClick={handleTechnicalReset}
+          >
+            Réinitialisation Technique (429 Error)
+          </Button>
         </div>
+
       </div>
     </div>
   );

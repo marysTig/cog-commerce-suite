@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (syncInProgress.current === token && token !== null) return;
       syncInProgress.current = token;
       
-      console.log("[Auth] Session update detected. User:", sess?.user?.email || "none");
+      console.log("[Auth] Session update detected. User ID:", userId || "none", "Email:", sess?.user?.email || "none");
       setSession(sess);
       setUser(sess?.user ?? null);
       
@@ -75,8 +75,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           // Only show loading if we haven't verified this user yet
           if (!isAdmin) setLoading(true);
-          await checkAdmin(sess.user.id);
-          lastSessionToken.current = token;
+          const is_admin = await checkAdmin(sess.user.id);
+          
+          if (is_admin) {
+            lastSessionToken.current = token;
+            console.log("[Auth] Admin verification successful for:", sess.user.email);
+          } else {
+            console.warn("[Auth] Admin verification failed for UID:", sess.user.id);
+          }
         } catch (err) {
           console.error("[Auth] Failed to sync admin status:", err);
         } finally {
@@ -87,11 +93,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }
       } else {
+        console.log("[Auth] No active session found.");
         lastSessionToken.current = null;
         syncInProgress.current = null;
         setIsAdmin(false);
         setLoading(false);
       }
+
     }
 
     // Get initial session
