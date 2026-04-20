@@ -247,20 +247,23 @@ const AdminProducts = () => {
             </DialogHeader>
             <form onSubmit={save} className="space-y-6 pt-2">
               <div>
-                <Label className="mb-3 block">Images du produit</Label>
-                <div className="flex flex-wrap items-center gap-4">
-                   {form.image_urls?.map((url: string, idx: number) => (
-                    <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group">
-                      <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(idx)}
-                        className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                <Label className="mb-3 block">Images du produit ({form.image_urls?.length || 0})</Label>
+                <div className="flex flex-wrap items-center gap-4 border border-gold/10 p-4 rounded-xl bg-onyx/20 min-h-[120px]">
+                  {(form.image_urls || []).map((url: string, idx: number) => {
+                    if (!url) return null;
+                    return (
+                      <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group shadow-lg">
+                        <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground shadow-md"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
 
                   {/* Loading placeholders */}
                   {Array.from({ length: pendingImages }).map((_, i) => (
