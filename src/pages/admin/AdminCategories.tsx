@@ -142,7 +142,11 @@ const AdminCategories = () => {
               <Plus className="h-4 w-4 mr-2" /> Nouvel Univers
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card glass-card border-gold/10 sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogContent 
+            className="bg-card glass-card border-gold/10 sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle className="font-display text-2xl text-gold">
                 {editing ? "Modifier l'univers" : "Créer un nouvel univers"}

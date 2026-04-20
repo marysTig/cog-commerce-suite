@@ -155,7 +155,11 @@ const AdminProducts = () => {
           <DialogTrigger asChild>
             <Button variant="gold" onClick={openNew} className="shadow-gold-glow"><Plus className="h-4 w-4 mr-2" /> Ajouter</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-card border-gold/10 max-h-[90vh] overflow-y-auto">
+          <DialogContent 
+            className="max-w-2xl bg-card border-gold/10 max-h-[90vh] overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle className="font-display text-2xl text-gold">{editing ? "Modifier" : "Nouveau"} produit</DialogTitle>
             </DialogHeader>
