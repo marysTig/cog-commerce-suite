@@ -392,6 +392,16 @@ const AdminProducts = () => {
                 </label>
               </div>
 
+              {/* Emergency Diagnostic Area */}
+              {(form.image_urls || []).length > 0 && (
+                <div className="p-2 bg-black/40 rounded border border-white/5 text-[9px] font-mono text-gold/60 break-all space-y-1">
+                  <p className="uppercase font-bold mb-1 opacity-40">Debug: Liste des URLs</p>
+                  {(form.image_urls || []).map((u: string, i: number) => (
+                    <div key={i}>{i+1}: {u}</div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">Annuler</Button>
                 <Button type="submit" variant="gold" disabled={saving} className="flex-1 shadow-gold-glow">
