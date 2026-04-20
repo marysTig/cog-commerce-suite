@@ -47,6 +47,7 @@ const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [pendingImages, setPendingImages] = useState<number>(0);
   const PAGE_SIZE = 24;
 
   // Persistence logic for mobile (prevents losing form on camera-refresh)
@@ -155,16 +156,27 @@ const AdminProducts = () => {
 
   const handleImage = async (file: File) => {
     setUploading(true);
-    const tId = toast.loading("Compression de l'image...");
+    setPendingImages(prev => prev + 1);
+    const tId = toast.loading("Compression & Envoi...");
     try {
       const compressed = await compressImage(file);
-      toast.loading("Transfert vers le serveur...", { id: tId });
       const url = await uploadToCloudinary(compressed);
-      setForm(prev => ({ ...prev, image_urls: [...(prev.image_urls || []), url] }));
-      toast.success("Image ajoutée avec succès !", { id: tId });
+      
+      // Ensure we have a valid string URL
+      if (typeof url !== 'string' || !url.startsWith('http')) {
+        throw new Error("URL de l'image invalide");
+      }
+
+      setForm(prev => ({ 
+        ...prev, 
+        image_urls: [...(Array.isArray(prev.image_urls) ? prev.image_urls : []), url] 
+      }));
+      
+      toast.success("Image ajoutée !", { id: tId });
     } catch (error: any) {
-      toast.error("Échec de l'upload: " + error.message, { id: tId });
+      toast.error("Échec: " + error.message, { id: tId });
     } finally {
+      setPendingImages(prev => Math.max(0, prev - 1));
       setUploading(false);
     }
   };
@@ -237,9 +249,9 @@ const AdminProducts = () => {
               <div>
                 <Label className="mb-3 block">Images du produit</Label>
                 <div className="flex flex-wrap items-center gap-4">
-                  {form.image_urls?.map((url: string, idx: number) => (
-                    <div key={idx} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group">
-                      <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" />
+                   {form.image_urls?.map((url: string, idx: number) => (
+                    <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group">
+                      <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
                       <button
                         type="button"
                         onClick={() => removeImage(idx)}
@@ -247,6 +259,13 @@ const AdminProducts = () => {
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
+                    </div>
+                  ))}
+
+                  {/* Loading placeholders */}
+                  {Array.from({ length: pendingImages }).map((_, i) => (
+                    <div key={`pending-${i}`} className="h-24 w-24 rounded-xl bg-onyx/50 border border-gold/30 border-dashed flex items-center justify-center animate-pulse">
+                      <Loader2 className="h-5 w-5 animate-spin text-gold" />
                     </div>
                   ))}
                   
