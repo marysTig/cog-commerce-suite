@@ -130,36 +130,36 @@ const TestimonialCard = ({
   onUnapprove?: () => void;
   onDelete: () => void;
 }) => (
-  <div className="bg-card border border-border rounded-xl p-6 hover:border-gold/30 transition-all group overflow-hidden relative">
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="font-display text-lg font-bold">{testimonial.name}</h3>
+  <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-gold/30 transition-all group overflow-hidden relative shadow-sm">
+    <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+      <div className="flex-1 w-full">
+        <div className="flex flex-wrap items-center gap-3 mb-3">
+          <h3 className="font-display text-lg font-bold text-foreground">{testimonial.name}</h3>
           <div className="flex">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={`h-3 w-3 ${i < testimonial.rating ? "text-gold fill-gold" : "text-muted-foreground/20"}`} />
             ))}
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase">{new Date(testimonial.created_at).toLocaleDateString()}</p>
+          <p className="text-[10px] text-muted-foreground uppercase ml-auto sm:ml-0 font-medium">{new Date(testimonial.created_at).toLocaleDateString()}</p>
         </div>
-        <p className="text-foreground/80 leading-relaxed italic border-l-2 border-gold/20 pl-4 py-1">
+        <p className="text-foreground/80 leading-relaxed italic border-l-2 border-gold/20 pl-4 py-1 text-sm sm:text-base">
           "{testimonial.comment}"
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 shrink-0">
+      <div className="flex flex-row sm:flex-col gap-2 w-full sm:w-32 shrink-0">
         {onApprove && (
-          <Button size="sm" variant="gold" onClick={onApprove} className="w-32">
-            <Check className="h-4 w-4 mr-2" /> Approuver
+          <Button size="sm" variant="gold" onClick={onApprove} className="flex-1 sm:w-full h-10 sm:h-9">
+            <Check className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Approuver</span><span className="sm:hidden">OK</span>
           </Button>
         )}
         {onUnapprove && (
-          <Button size="sm" variant="outline" onClick={onUnapprove} className="w-32 border-gold/20 text-gold hover:bg-gold/5">
-            <X className="h-4 w-4 mr-2" /> Masquer
+          <Button size="sm" variant="outline" onClick={onUnapprove} className="flex-1 sm:w-full h-10 sm:h-9 border-gold/20 text-gold hover:bg-gold/5">
+            <X className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Masquer</span><span className="sm:hidden">Cacher</span>
           </Button>
         )}
-        <Button size="sm" variant="ghost" onClick={onDelete} className="w-32 text-muted-foreground hover:text-destructive hover:bg-destructive/5">
-          <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+        <Button size="sm" variant="ghost" onClick={onDelete} className="flex-1 sm:w-full h-10 sm:h-9 text-muted-foreground hover:text-destructive hover:bg-destructive/5">
+          <Trash2 className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Supprimer</span><span className="sm:hidden">Suppr.</span>
         </Button>
       </div>
     </div>
