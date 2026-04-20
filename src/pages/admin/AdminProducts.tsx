@@ -12,6 +12,7 @@ import { Plus, Pencil, Trash2, Loader2, ImageOff } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { compressImage } from "@/lib/image-utils";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
@@ -154,11 +155,15 @@ const AdminProducts = () => {
 
   const handleImage = async (file: File) => {
     setUploading(true);
+    const tId = toast.loading("Compression de l'image...");
     try {
-      const url = await uploadToCloudinary(file);
-      setForm((f: any) => ({ ...f, image_urls: [...(f.image_urls || []), url] }));
+      const compressed = await compressImage(file);
+      toast.loading("Transfert vers le serveur...", { id: tId });
+      const url = await uploadToCloudinary(compressed);
+      setForm(prev => ({ ...prev, image_urls: [...(prev.image_urls || []), url] }));
+      toast.success("Image ajoutée avec succès !", { id: tId });
     } catch (error: any) {
-      toast.error("Upload Cloudinary échoué: " + error.message);
+      toast.error("Échec de l'upload: " + error.message, { id: tId });
     } finally {
       setUploading(false);
     }
@@ -255,7 +260,6 @@ const AdminProducts = () => {
                       disabled={uploading}
                       onChange={async (e) => {
                         if (e.target.files && e.target.files.length > 0) {
-                          toast.info("Déchargement de l'image...");
                           for (let i = 0; i < e.target.files.length; i++) {
                             await handleImage(e.target.files[i]);
                           }

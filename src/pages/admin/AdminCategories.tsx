@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { compressImage } from "@/lib/image-utils";
 
 type Category = Tables<"categories"> & { product_count?: number };
 
@@ -94,15 +95,17 @@ const AdminCategories = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("L'image ne doit pas dépasser 5Mo"); return; }
-    
+
     setUploading(true);
+    const tId = toast.loading("Compression de l'image...");
     try {
-      const url = await uploadToCloudinary(file);
-      setForm((f) => ({ ...f, image_url: url }));
-      toast.success("Image mise en ligne sur Cloudinary");
+      const compressed = await compressImage(file);
+      toast.loading("Transfert vers le serveur...", { id: tId });
+      const url = await uploadToCloudinary(compressed);
+      setForm(prev => ({ ...prev, image_url: url }));
+      toast.success("Image ajoutée !", { id: tId });
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Échec: " + error.message, { id: tId });
     } finally {
       setUploading(false);
     }
@@ -237,7 +240,6 @@ const AdminCategories = () => {
                       className="hidden" 
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
-                          toast.info("Déchargement de l'image...");
                           handleUpload(e);
                         }
                       }} 
