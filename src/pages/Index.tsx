@@ -99,7 +99,7 @@ const Index = () => {
             <div className="flex items-end justify-between mb-8 md:mb-10">
               <div>
                 <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-semibold text-gold mb-3">Nos catégories</p>
-                <h2 className="font-display text-4xl md:text-5xl tracking-tight">Explorer par univers</h2>
+                <h2 className="font-display text-4xl md:text-5xl tracking-tight">Nos catégories</h2>
               </div>
               <Link to="/categories" className="hidden md:inline-flex text-sm text-gold hover:underline uppercase tracking-wider">Tout voir →</Link>
             </div>
