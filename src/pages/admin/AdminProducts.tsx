@@ -34,7 +34,7 @@ const getStockBadge = (status: string | null | undefined) => {
   return s;
 };
 
-const empty = { name: "", slug: "", description: "", price: 0, category_id: "", image_collection: [] as string[], stock_status: "in_stock" as StockStatus, featured: false, sku: "", stock_quantity: 0, is_promotion: false, old_price: 0 };
+const empty = { name: "", slug: "", description: "", price: 0, category_id: "", image_urls: [] as string[], stock_status: "in_stock" as StockStatus, featured: false, sku: "", stock_quantity: 0, is_promotion: false, old_price: 0 };
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,28 +56,24 @@ const AdminProducts = () => {
     if (draft) {
       try {
         const { form: savedForm, editing: savedEditing } = JSON.parse(draft);
-        const migratedForm = { ...savedForm };
-        // Ensure image_collection exists
-        if (!Array.isArray(migratedForm.image_collection)) {
-          migratedForm.image_collection = migratedForm.image_urls || [];
-        }
-        setForm(migratedForm);
+        setForm(savedForm);
         setEditing(savedEditing);
         setOpen(true);
+        // Clear it once restored so it doesn't pop up forever if they never save
+        localStorage.removeItem("cog_product_draft");
       } catch (e) {
         console.error("Draft restore failed", e);
-      } finally {
-        localStorage.removeItem("cog_product_draft");
       }
     }
   }, []);
 
   useEffect(() => {
-    // Only save draft if NOT currently uploading (to avoid race conditions)
-    if (open && !uploading) {
+    if (open) {
       localStorage.setItem("cog_product_draft", JSON.stringify({ form, editing }));
+    } else {
+      localStorage.removeItem("cog_product_draft");
     }
-  }, [form, open, editing, uploading]);
+  }, [form, open, editing]);
 
   const load = async (reset = false) => {
     if (reset) {
@@ -144,12 +140,11 @@ const AdminProducts = () => {
       parsedUrls = p.image_url ? [p.image_url] : [];
     }
     const stockStatus: StockStatus = (p as any).stock_status === "limited" ? "limited" : (p as any).stock_status === "out_of_stock" ? "out_of_stock" : "in_stock";
-    const { image_url, ...rest } = p;
     setForm({ 
-      ...rest, 
+      ...p, 
       category_id: p.category_id ?? "", 
       description: p.description ?? "", 
-      image_collection: parsedUrls,
+      image_urls: parsedUrls,
       sku: (p as any).sku ?? "",
       stock_quantity: (p as any).stock_quantity ?? 0,
       stock_status: stockStatus,
@@ -162,39 +157,35 @@ const AdminProducts = () => {
   const handleImage = async (file: File) => {
     setUploading(true);
     setPendingImages(prev => prev + 1);
-    const tId = toast.loading("Compression & Transfert...");
+    const tId = toast.loading("Compression & Envoi...");
     try {
       const compressed = await compressImage(file);
       const url = await uploadToCloudinary(compressed);
       
-      if (!url) throw new Error("Le serveur n'a pas renvoyé d'URL");
+      // Ensure we have a valid string URL
+      if (typeof url !== 'string' || !url.startsWith('http')) {
+        throw new Error("URL de l'image invalide");
+      }
 
-      setForm(prev => {
-        const current = Array.isArray(prev.image_collection) ? prev.image_collection : [];
-        console.log("Adding URL to collection:", url);
-        return { 
-          ...prev, 
-          image_collection: [...current, url] 
-        };
-      });
+      setForm(prev => ({ 
+        ...prev, 
+        image_urls: [...(Array.isArray(prev.image_urls) ? prev.image_urls : []), url] 
+      }));
       
-      toast.success("Image reçue !", { id: tId });
+      toast.success("Image ajoutée !", { id: tId });
     } catch (error: any) {
       toast.error("Échec: " + error.message, { id: tId });
     } finally {
-      setTimeout(() => {
-        setPendingImages(prev => Math.max(0, prev - 1));
-        setUploading(false);
-      }, 500); // Small delay to allow state to settle
+      setPendingImages(prev => Math.max(0, prev - 1));
+      setUploading(false);
     }
   };
 
   const removeImage = (index: number) => {
     setForm((f: any) => {
-      const current = Array.isArray(f.image_collection) ? f.image_collection : [];
-      const newCollection = [...current];
-      newCollection.splice(index, 1);
-      return { ...f, image_collection: newCollection };
+      const newUrls = [...f.image_urls];
+      newUrls.splice(index, 1);
+      return { ...f, image_urls: newUrls };
     });
   };
 
@@ -208,7 +199,7 @@ const AdminProducts = () => {
       description: form.description || null,
       price: form.price,
       category_id: form.category_id || null,
-      image_url: form.image_collection && form.image_collection.length > 0 ? JSON.stringify(form.image_collection) : null,
+      image_url: form.image_urls && form.image_urls.length > 0 ? JSON.stringify(form.image_urls) : null,
       in_stock: form.stock_status !== "out_of_stock",
       featured: form.featured,
       sku: form.sku || null,
@@ -256,33 +247,28 @@ const AdminProducts = () => {
             </DialogHeader>
             <form onSubmit={save} className="space-y-6 pt-2">
               <div>
-                <Label className="mb-3 block text-gold/80">Images du produit ({form.image_collection?.length || 0})</Label>
+                <Label className="mb-3 block">Images du produit ({form.image_urls?.length || 0})</Label>
                 <div className="flex flex-wrap items-center gap-4 border border-gold/10 p-4 rounded-xl bg-onyx/20 min-h-[120px]">
-                  {(!form.image_collection || form.image_collection.length === 0) && pendingImages === 0 && (
-                    <div className="flex flex-col items-center justify-center w-full py-4 text-muted-foreground animate-fade-in">
-                      <ImageOff className="h-8 w-8 mb-2 opacity-20" />
-                      <p className="text-xs uppercase tracking-widest">Aucune image</p>
-                    </div>
-                  )}
-
-                  {(form.image_collection || []).map((url: string, idx: number) => (
-                    <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group shadow-lg ring-1 ring-white/5">
-                      <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(idx)}
-                        className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive hover:text-white shadow-xl scale-90 hover:scale-100"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                  {(form.image_urls || []).map((url: string, idx: number) => {
+                    if (!url) return null;
+                    return (
+                      <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group shadow-lg">
+                        <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground shadow-md"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
 
                   {/* Loading placeholders */}
                   {Array.from({ length: pendingImages }).map((_, i) => (
-                    <div key={`pending-${i}`} className="h-24 w-24 rounded-xl bg-gold/5 border-2 border-gold/30 border-dashed flex flex-col items-center justify-center gap-1 animate-pulse shadow-gold-glow/20">
+                    <div key={`pending-${i}`} className="h-24 w-24 rounded-xl bg-onyx/50 border border-gold/30 border-dashed flex items-center justify-center animate-pulse">
                       <Loader2 className="h-5 w-5 animate-spin text-gold" />
-                      <span className="text-[8px] uppercase font-bold text-gold/60">Envoi...</span>
                     </div>
                   ))}
                   
@@ -393,24 +379,6 @@ const AdminProducts = () => {
                   <span className="text-sm font-medium group-hover:text-gold transition-colors">Mis en vedette</span>
                 </label>
               </div>
-
-              {/* Emergency Diagnostic Area */}
-              {(form.image_collection || []).length > 0 && (
-                <div className="p-3 bg-black/40 rounded-xl border border-gold/20 text-[10px] font-mono text-gold group mt-4">
-                  <p className="uppercase font-bold mb-2 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
-                    Données Réelles (image_collection)
-                  </p>
-                  <div className="space-y-2 opacity-80">
-                    {(form.image_collection || []).map((u: string, i: number) => (
-                      <div key={i} className="flex gap-2 items-start border-l border-gold/20 pl-2">
-                        <span className="opacity-40">{i+1}:</span>
-                        <span className="break-all">{u}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">Annuler</Button>
