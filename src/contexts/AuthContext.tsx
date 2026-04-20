@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const syncInProgress = useRef<string | null>(null);
+  const lastSessionToken = useRef<string | null>(null);
 
   const checkAdmin = async (uid: string) => {
     console.log("[Auth] Checking admin role for UID:", uid);
@@ -49,30 +51,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     async function syncAuth(sess: Session | null) {
       if (!mounted) return;
       
+      const token = sess?.access_token ?? null;
+      const userId = sess?.user?.id ?? null;
+
+      // Deduplication: If this session token was already processed, skip re-verification
+      if (token === lastSessionToken.current && token !== null) {
+        console.log("[Auth] Token unchanged, skipping sync.");
+        setSession(sess);
+        setUser(sess?.user ?? null);
+        setLoading(false);
+        return;
+      }
+
+      // Guard: Prevent overlapping sync operations for the same token
+      if (syncInProgress.current === token && token !== null) return;
+      syncInProgress.current = token;
+      
       console.log("[Auth] Session update detected. User:", sess?.user?.email || "none");
       setSession(sess);
       setUser(sess?.user ?? null);
       
       if (sess?.user) {
         try {
-          // Only show loading if we don't already have a verified admin status
+          // Only show loading if we haven't verified this user yet
           if (!isAdmin) setLoading(true);
           await checkAdmin(sess.user.id);
+          lastSessionToken.current = token;
         } catch (err) {
           console.error("[Auth] Failed to sync admin status:", err);
         } finally {
+          syncInProgress.current = null;
           if (mounted) {
             setLoading(false);
             console.log("[Auth] Sync complete, loading: false");
           }
         }
       } else {
+        lastSessionToken.current = null;
+        syncInProgress.current = null;
         setIsAdmin(false);
         setLoading(false);
       }
     }
 
     // Get initial session
+    console.log("[Auth] Starting initial session check...");
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       console.log("[Auth] Initial session check complete");
       if (mounted) syncAuth(sess);
@@ -84,8 +107,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
       console.log("[Auth] Auth state change event:", _event);
+      // Throttle or debounce if needed, but deduplication by token should suffice
       if (mounted) syncAuth(sess);
     });
+
 
 
     return () => {
