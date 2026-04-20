@@ -145,6 +145,7 @@ const AdminCategories = () => {
           <DialogContent 
             className="bg-card glass-card border-gold/10 sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
             onInteractOutside={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >
             <DialogHeader>

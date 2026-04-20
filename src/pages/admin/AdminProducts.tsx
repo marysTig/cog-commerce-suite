@@ -158,6 +158,7 @@ const AdminProducts = () => {
           <DialogContent 
             className="max-w-2xl bg-card border-gold/10 max-h-[90vh] overflow-y-auto"
             onInteractOutside={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >
             <DialogHeader>
