@@ -94,7 +94,6 @@ const AdminGallery = () => {
             <input
               type="file"
               accept="image/*"
-              multiple
               className="hidden"
               disabled={uploading}
               onChange={(e) => {

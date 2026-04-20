@@ -181,7 +181,6 @@ const AdminProducts = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      multiple
                       className="hidden"
                       disabled={uploading}
                       onChange={async (e) => {
