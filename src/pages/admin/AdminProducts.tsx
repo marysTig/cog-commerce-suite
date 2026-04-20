@@ -228,22 +228,22 @@ const AdminProducts = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2 col-span-2 sm:col-span-1">
                   <Label>Nom du produit *</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                  <Input value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} required />
                 </div>
                 <div className="space-y-2 col-span-2 sm:col-span-1">
                   <Label>Référence (SKU)</Label>
-                  <Input placeholder="Ex: ART-123" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
+                   <Input placeholder="Ex: ART-123" value={form.sku} onChange={(e) => setForm(prev => ({ ...prev, sku: e.target.value }))} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Prix actuel (DA) *</Label>
-                  <Input type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} required />
+                  <Input type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))} required />
                 </div>
                 <div className="space-y-2">
                   <Label>Catégorie</Label>
-                  <Select value={form.category_id || "none"} onValueChange={(v) => setForm({ ...form, category_id: v === "none" ? "" : v })}>
+                  <Select value={form.category_id || "none"} onValueChange={(v) => setForm(prev => ({ ...prev, category_id: v === "none" ? "" : v }))}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Aucune</SelectItem>
@@ -255,7 +255,7 @@ const AdminProducts = () => {
 
               <div className="p-4 rounded-xl border border-border bg-muted/20 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <Switch checked={form.is_promotion} onCheckedChange={(v) => setForm({ ...form, is_promotion: v })} />
+                  <Switch checked={form.is_promotion} onCheckedChange={(v) => setForm(prev => ({ ...prev, is_promotion: v }))} />
                   <span className="text-sm font-bold text-red-500 group-hover:text-red-400 transition-colors">🔥 Produit en promotion</span>
                 </label>
                 
@@ -267,7 +267,7 @@ const AdminProducts = () => {
                       step="0.01" 
                       min="0" 
                       value={form.old_price} 
-                      onChange={(e) => setForm({ ...form, old_price: parseFloat(e.target.value) || 0 })} 
+                      onChange={(e) => setForm(prev => ({ ...prev, old_price: parseFloat(e.target.value) || 0 }))} 
                       placeholder="Prix d'origine avant réduction"
                       className="border-red-500/30 focus-visible:ring-red-500"
                     />
@@ -277,12 +277,12 @@ const AdminProducts = () => {
 
               <div className="space-y-2">
                 <Label>Quantité initiale en stock</Label>
-                <Input type="number" min="0" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseInt(e.target.value) || 0 })} />
+                <Input type="number" min="0" value={form.stock_quantity} onChange={(e) => setForm(prev => ({ ...prev, stock_quantity: parseInt(e.target.value) || 0 }))} />
               </div>
 
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Textarea rows={4} value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} />
               </div>
 
               <div className="space-y-4 py-2 border-y border-border/50">
@@ -293,7 +293,7 @@ const AdminProducts = () => {
                       <button
                         key={opt.value}
                         type="button"
-                        onClick={() => setForm({ ...form, stock_status: opt.value })}
+                        onClick={() => setForm(prev => ({ ...prev, stock_status: opt.value }))}
                         className={cn(
                           "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200",
                           form.stock_status === opt.value
@@ -308,7 +308,7 @@ const AdminProducts = () => {
                   </div>
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <Switch checked={form.featured} onCheckedChange={(v) => setForm({ ...form, featured: v })} />
+                  <Switch checked={form.featured} onCheckedChange={(v) => setForm(prev => ({ ...prev, featured: v }))} />
                   <span className="text-sm font-medium group-hover:text-gold transition-colors">Mis en vedette</span>
                 </label>
               </div>

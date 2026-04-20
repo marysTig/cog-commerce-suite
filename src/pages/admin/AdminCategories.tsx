@@ -187,7 +187,7 @@ const AdminCategories = () => {
                   id="cat-name"
                   placeholder="Ex: Outillage Électroportatif"
                   value={form.name} 
-                  onChange={(e) => setForm({ ...form, name: e.target.value })} 
+                  onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} 
                   required 
                   className="bg-background/50 border-white/5 focus:border-gold/50"
                 />
@@ -200,7 +200,7 @@ const AdminCategories = () => {
                   placeholder="Brève présentation de cet univers..."
                   rows={3} 
                   value={form.description} 
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                  onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} 
                   className="bg-background/50 border-white/5 focus:border-gold/50"
                 />
               </div>
@@ -215,7 +215,7 @@ const AdminCategories = () => {
                         type="button"
                         variant="destructive"
                         size="sm"
-                        onClick={() => setForm({ ...form, image_url: "" })}
+                        onClick={() => setForm(prev => ({ ...prev, image_url: "" }))}
                       >
                         <Trash2 className="h-4 w-4 mr-2" /> Supprimer
                       </Button>
