@@ -277,7 +277,6 @@ const AdminProducts = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      capture="environment"
                       className="hidden"
                       disabled={uploading}
                       onChange={async (e) => {

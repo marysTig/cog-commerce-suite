@@ -236,7 +236,6 @@ const AdminCategories = () => {
                     <input 
                       type="file" 
                       accept="image/*" 
-                      capture="environment"
                       className="hidden" 
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
