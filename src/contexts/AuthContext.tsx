@@ -20,20 +20,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (uid: string) => {
-    console.log("Checking admin role for UID:", uid);
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .eq("role", "admin");
-    
-    if (error) {
-      console.error("Error checking admin role:", error);
+    console.log("[Auth] Checking admin role for UID:", uid);
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin");
+      
+      if (error) {
+        console.error("[Auth] Error fetching user_roles:", error);
+        return false;
+      }
+      
+      const is_admin = Array.isArray(data) && data.length > 0;
+      console.log("[Auth] Admin role status:", is_admin ? "VERIFIED" : "DENIED");
+      setIsAdmin(is_admin);
+      return is_admin;
+    } catch (err) {
+      console.error("[Auth] Critical error during admin check:", err);
+      return false;
     }
-    
-    console.log("Admin role response:", data);
-    setIsAdmin(Array.isArray(data) && data.length > 0);
-    return Array.isArray(data) && data.length > 0;
   };
 
   useEffect(() => {
@@ -42,15 +49,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     async function syncAuth(sess: Session | null) {
       if (!mounted) return;
       
+      console.log("[Auth] Session update detected. User:", sess?.user?.email || "none");
       setSession(sess);
       setUser(sess?.user ?? null);
       
       if (sess?.user) {
-        // Only show loading if we don't know the status yet
-        if (!isAdmin) setLoading(true);
-        console.log("Syncing admin for:", sess.user.id);
-        await checkAdmin(sess.user.id);
-        if (mounted) setLoading(false);
+        try {
+          // Only show loading if we don't already have a verified admin status
+          if (!isAdmin) setLoading(true);
+          await checkAdmin(sess.user.id);
+        } catch (err) {
+          console.error("[Auth] Failed to sync admin status:", err);
+        } finally {
+          if (mounted) {
+            setLoading(false);
+            console.log("[Auth] Sync complete, loading: false");
+          }
+        }
       } else {
         setIsAdmin(false);
         setLoading(false);
@@ -59,13 +74,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
+      console.log("[Auth] Initial session check complete");
       if (mounted) syncAuth(sess);
+    }).catch(err => {
+      console.error("[Auth] Initial session error:", err);
+      if (mounted) setLoading(false);
     });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+      console.log("[Auth] Auth state change event:", _event);
       if (mounted) syncAuth(sess);
     });
+
 
     return () => {
       mounted = false;

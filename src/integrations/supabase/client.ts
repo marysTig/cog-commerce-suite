@@ -5,13 +5,26 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Safely get localStorage with fallback
+const getStorage = () => {
+  try {
+    if (typeof window === 'undefined') return undefined;
+    const storage = window.localStorage;
+    // Test if storage is actually writable
+    const key = '__test_storage__';
+    storage.setItem(key, key);
+    storage.removeItem(key);
+    return storage;
+  } catch (e) {
+    console.warn('Supabase Auth: localStorage is not accessible. Session will not persist.', e);
+    return undefined;
+  }
+};
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: getStorage(),
     persistSession: true,
     autoRefreshToken: true,
   }
-});
+});
