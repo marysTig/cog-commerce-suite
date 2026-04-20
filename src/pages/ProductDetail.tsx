@@ -221,40 +221,39 @@ const ProductDetail = () => {
             </a>
           </div>
 
-          {/* MOBILE WHATSAPP BUTTON */}
+          {/* MOBILE PANIER BUTTON */}
           <div className="flex lg:hidden mt-8 mb-4">
-            <a 
-              href={`https://wa.me/213792425656?text=${whatsappMsg}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center rounded-full text-xs uppercase tracking-wider h-14 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-bold shadow-[0_8px_30px_rgba(37,211,102,0.4)] hover:scale-[1.02] transition-transform"
+            <Button 
+                onClick={() => addItem(product)}
+                disabled={isOutOfStock}
+                variant="outline"
+                className="w-full rounded-full text-xs uppercase tracking-wider h-14 border-2 border-gold/40 text-gold hover:bg-gold/10 hover:border-gold hover:text-gold shadow-lg shadow-gold/5 transition-all outline-none"
             >
-              <MessageCircle className="h-5 w-5 mr-2" /> Numéro WhatsApp
-            </a>
+                <ShoppingBag className="h-5 w-5 mr-2" /> Ajouter au panier
+            </Button>
           </div>
 
         </div>
       </article>
 
       {/* STICKY BOTTOM BAR (MOBILE) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/70 lg:hidden backdrop-blur-xl border-t border-white/5 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-        <div className="flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-background/80 lg:hidden backdrop-blur-xl border-t border-white/5 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+        <div className="flex gap-2 sm:gap-3">
           <Button 
-            className="flex-1 rounded-full bg-gradient-to-r from-gold-deep via-gold to-gold-bright text-black font-extrabold text-xs uppercase tracking-wider h-14 shadow-[0_8px_30px_rgba(212,175,55,0.4)] active:scale-95 transition-transform"
+            className="flex-1 rounded-full bg-gradient-to-r from-gold-deep via-gold to-gold-bright text-black font-extrabold text-[11px] sm:text-xs uppercase tracking-wider h-14 shadow-[0_8px_30px_rgba(212,175,55,0.4)] active:scale-95 transition-transform"
             disabled={isOutOfStock} 
             onClick={() => setModalOpen(true)}
           >
             Achat Direct
           </Button>
-          <Button 
-            variant="outline"
-            className="h-14 w-14 rounded-full border-2 border-gold/40 text-gold flex items-center justify-center shrink-0 active:scale-95 active:bg-gold/10 transition-transform shadow-[0_8px_30px_rgba(0,0,0,0.3)] bg-background/50"
-            disabled={isOutOfStock} 
-            onClick={() => addItem(product)}
-            size="icon"
+          <a 
+            href={`https://wa.me/213792425656?text=${whatsappMsg}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center rounded-full text-[11px] sm:text-xs uppercase tracking-wider h-14 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-extrabold shadow-[0_8px_30px_rgba(37,211,102,0.4)] active:scale-95 transition-transform"
           >
-            <ShoppingBag className="h-5 w-5" />
-          </Button>
+            <MessageCircle className="h-4 w-4 sm:h-5 w-5 mr-1.5" /> WhatsApp
+          </a>
         </div>
       </div>
 
