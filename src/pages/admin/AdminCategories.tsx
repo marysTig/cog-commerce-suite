@@ -28,6 +28,30 @@ const AdminCategories = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Persistence logic for mobile
+  useEffect(() => {
+    const draft = localStorage.getItem("cog_category_draft");
+    if (draft) {
+      try {
+        const { form: savedForm, editing: savedEditing } = JSON.parse(draft);
+        setForm(savedForm);
+        setEditing(savedEditing);
+        setOpen(true);
+        localStorage.removeItem("cog_category_draft");
+      } catch (e) {
+        console.error("Category draft restore failed", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      localStorage.setItem("cog_category_draft", JSON.stringify({ form, editing }));
+    } else {
+      localStorage.removeItem("cog_category_draft");
+    }
+  }, [form, open, editing]);
+
   const load = async () => {
     setLoading(true);
     try {

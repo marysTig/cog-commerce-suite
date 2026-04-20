@@ -45,6 +45,31 @@ const AdminProducts = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Persistence logic for mobile (prevents losing form on camera-refresh)
+  useEffect(() => {
+    const draft = localStorage.getItem("cog_product_draft");
+    if (draft) {
+      try {
+        const { form: savedForm, editing: savedEditing } = JSON.parse(draft);
+        setForm(savedForm);
+        setEditing(savedEditing);
+        setOpen(true);
+        // Clear it once restored so it doesn't pop up forever if they never save
+        localStorage.removeItem("cog_product_draft");
+      } catch (e) {
+        console.error("Draft restore failed", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      localStorage.setItem("cog_product_draft", JSON.stringify({ form, editing }));
+    } else {
+      localStorage.removeItem("cog_product_draft");
+    }
+  }, [form, open, editing]);
+
   const load = async () => {
     setLoading(true);
     const [{ data: p }, { data: c }] = await Promise.all([

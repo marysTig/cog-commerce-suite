@@ -46,7 +46,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(sess?.user ?? null);
       
       if (sess?.user) {
-        setLoading(true);
+        // Only show loading if we don't know the status yet
+        if (!isAdmin) setLoading(true);
         console.log("Syncing admin for:", sess.user.id);
         await checkAdmin(sess.user.id);
         if (mounted) setLoading(false);
