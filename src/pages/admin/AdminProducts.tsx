@@ -56,13 +56,20 @@ const AdminProducts = () => {
     if (draft) {
       try {
         const { form: savedForm, editing: savedEditing } = JSON.parse(draft);
-        setForm(savedForm);
+        // Safety: Ensure image_urls is always an array, migrate if needed
+        const migratedForm = { ...savedForm };
+        if (!Array.isArray(migratedForm.image_urls)) {
+          migratedForm.image_urls = migratedForm.image_url ? 
+            (typeof migratedForm.image_url === 'string' && migratedForm.image_url.startsWith('[') ? JSON.parse(migratedForm.image_url) : [migratedForm.image_url]) 
+            : [];
+        }
+        setForm(migratedForm);
         setEditing(savedEditing);
         setOpen(true);
-        // Clear it once restored so it doesn't pop up forever if they never save
-        localStorage.removeItem("cog_product_draft");
       } catch (e) {
         console.error("Draft restore failed", e);
+      } finally {
+        localStorage.removeItem("cog_product_draft");
       }
     }
   }, []);
@@ -157,22 +164,22 @@ const AdminProducts = () => {
   const handleImage = async (file: File) => {
     setUploading(true);
     setPendingImages(prev => prev + 1);
-    const tId = toast.loading("Compression & Envoi...");
+    const tId = toast.loading("Compression & Transfert...");
     try {
       const compressed = await compressImage(file);
       const url = await uploadToCloudinary(compressed);
       
-      // Ensure we have a valid string URL
-      if (typeof url !== 'string' || !url.startsWith('http')) {
-        throw new Error("URL de l'image invalide");
-      }
+      if (!url) throw new Error("Le serveur n'a pas renvoyé d'URL");
 
-      setForm(prev => ({ 
-        ...prev, 
-        image_urls: [...(Array.isArray(prev.image_urls) ? prev.image_urls : []), url] 
-      }));
+      setForm(prev => {
+        const currentUrls = Array.isArray(prev.image_urls) ? prev.image_urls : [];
+        return { 
+          ...prev, 
+          image_urls: [...currentUrls, url] 
+        };
+      });
       
-      toast.success("Image ajoutée !", { id: tId });
+      toast.success("Image reçue !", { id: tId });
     } catch (error: any) {
       toast.error("Échec: " + error.message, { id: tId });
     } finally {
@@ -249,26 +256,31 @@ const AdminProducts = () => {
               <div>
                 <Label className="mb-3 block">Images du produit ({form.image_urls?.length || 0})</Label>
                 <div className="flex flex-wrap items-center gap-4 border border-gold/10 p-4 rounded-xl bg-onyx/20 min-h-[120px]">
-                  {(form.image_urls || []).map((url: string, idx: number) => {
-                    if (!url) return null;
-                    return (
-                      <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group shadow-lg">
-                        <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(idx)}
-                          className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground shadow-md"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    );
-                  })}
+                  {(!form.image_urls || form.image_urls.length === 0) && pendingImages === 0 && (
+                    <div className="flex flex-col items-center justify-center w-full py-4 text-muted-foreground animate-fade-in">
+                      <ImageOff className="h-8 w-8 mb-2 opacity-20" />
+                      <p className="text-xs uppercase tracking-widest">Aucune image</p>
+                    </div>
+                  )}
+
+                  {(form.image_urls || []).map((url: string, idx: number) => (
+                    <div key={`${url}-${idx}`} className="relative h-24 w-24 rounded-xl bg-onyx border border-border overflow-hidden group shadow-lg ring-1 ring-white/5">
+                      <img src={url} alt={`Produit ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="absolute top-1 right-1 bg-background/80 backdrop-blur p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive hover:text-white shadow-xl scale-90 hover:scale-100"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
 
                   {/* Loading placeholders */}
                   {Array.from({ length: pendingImages }).map((_, i) => (
-                    <div key={`pending-${i}`} className="h-24 w-24 rounded-xl bg-onyx/50 border border-gold/30 border-dashed flex items-center justify-center animate-pulse">
+                    <div key={`pending-${i}`} className="h-24 w-24 rounded-xl bg-gold/5 border-2 border-gold/30 border-dashed flex flex-col items-center justify-center gap-1 animate-pulse shadow-gold-glow/20">
                       <Loader2 className="h-5 w-5 animate-spin text-gold" />
+                      <span className="text-[8px] uppercase font-bold text-gold/60">Envoi...</span>
                     </div>
                   ))}
                   
