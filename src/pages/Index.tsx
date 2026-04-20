@@ -160,22 +160,46 @@ const Index = () => {
         </section>
       )}
 
-      {/* CTA */}
+      {/* CTA Section - Sexy Redesign */}
       <section className="container py-16 md:py-24">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-steel-gradient border border-gold/20 shadow-2xl shadow-black/40 p-8 py-14 md:p-16 text-center transition-all duration-700 group">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_hsl(43_65%_52%_/_0.15),_transparent_70%)] opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000 ease-out" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          <div className="relative z-10 transform group-hover:translate-y-[-2px] transition-transform duration-700">
-            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold text-gold mb-4 drop-shadow-sm">Besoin d'un produit spécifique ?</p>
-            <h2 className="font-display text-[1.9rem] leading-[1.1] md:text-5xl max-w-2xl mx-auto tracking-tight drop-shadow-md">
-              Notre équipe est à votre <span className="text-gold">écoute</span>.
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-[#0A0A0A] border border-white/5 shadow-2xl shadow-black/80 p-6 sm:p-8 py-16 md:p-20 text-center transition-all duration-1000 group">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,_rgba(212,175,55,0.15),_transparent_70%)]" />
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-gold/5 blur-[100px] rounded-full group-hover:bg-gold/10 transition-all duration-1000" />
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-onyx/40 blur-[100px] rounded-full" />
+          
+          {/* Floating Icon Decoration */}
+          <div className="absolute top-8 right-8 md:top-12 md:right-12 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all duration-700 pointer-events-none">
+            <Sparkles className="h-20 w-20 text-gold" />
+          </div>
+
+          <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-[10px] md:text-xs uppercase tracking-[0.25em] font-bold text-gold mb-6 md:mb-8 animate-pulse-light">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+              Sur-mesure & Conseil
+            </div>
+            
+            <h2 className="font-display text-[2rem] leading-[1.1] sm:text-4xl md:text-6xl font-bold tracking-tight mb-6 md:mb-8 text-white/95 drop-shadow-2xl">
+              Besoin d'un produit<br className="sm:hidden" /> <span className="text-gold italic font-display italic">spécifique ?</span>
             </h2>
-            <Button asChild variant="gold" size="xl" className="mt-8 hover:scale-[1.02] shadow-[0_10px_35px_rgba(212,175,55,0.3)] hover:shadow-[0_15px_45px_rgba(212,175,55,0.4)] transition-all duration-500 w-full sm:w-auto rounded-full h-[3.5rem] md:h-16 text-[13px] md:text-[15px] uppercase tracking-wider font-extrabold group/btn gap-2">
-              <a href="https://wa.me/213792425656" target="_blank" rel="noopener noreferrer">
-                <MessageSquare className="h-5 w-5 bg-background text-gold p-1 rounded-full group-hover/btn:scale-110 transition-transform" /> 
-                <span className="hidden sm:inline">Nous écrire sur</span> WhatsApp
-              </a>
-            </Button>
+            
+            <p className="text-sm md:text-lg text-white/60 leading-relaxed mb-10 md:mb-12 max-w-xl">
+              De l'outillage rare aux pièces spécialisées, notre équipe de Chebaa mobilise tout son réseau pour vous trouver la solution technique idéale.
+            </p>
+
+            <div className="w-full flex justify-center">
+              <Button asChild variant="gold" size="xl" className="w-full max-w-xs sm:w-auto rounded-full h-16 md:h-18 px-8 md:px-12 text-[14px] md:text-base uppercase tracking-widest font-black shadow-[0_20px_50px_rgba(212,175,55,0.3)] hover:shadow-[0_25px_60px_rgba(212,175,55,0.45)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-500 group/wa relative overflow-hidden">
+                <a href="https://wa.me/213792425656" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3">
+                  {/* Internal Glow Effect */}
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/wa:translate-x-full transition-transform duration-1000" />
+                  
+                  <div className="h-8 w-8 rounded-full bg-onyx flex items-center justify-center shadow-inner">
+                    <MessageSquare className="h-4 w-4 text-gold fill-gold/20" />
+                  </div>
+                  <span>WhatsApp direct</span>
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

@@ -158,7 +158,7 @@ export const SiteHeader = () => {
                 <div className="h-10 w-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
                   <MapPin className="h-4 w-4 text-gold" />
                 </div>
-                <p className="text-sm font-medium">Bordj Bou Arreridj, Algérie</p>
+                <p className="text-sm font-medium">Seddouk, Algérie</p>
               </div>
             </div>
 
