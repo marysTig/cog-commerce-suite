@@ -38,7 +38,7 @@ export const compressImage = async (file: File, options: CompressOptions = {}): 
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext("canvas");
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
           reject(new Error("Failed to get canvas context"));
           return;
