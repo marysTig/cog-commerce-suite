@@ -146,9 +146,9 @@ export default function AdminProfile() {
           </p>
 
           <Button asChild className="w-full bg-[#0088cc] text-white hover:bg-[#007AB8]">
-            <a href="https://t.me/Tayebcqgbot" target="_blank" rel="noreferrer">
+            <a href="https://t.me/+pAoErwHiszQ3NzRk" target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4 mr-2" />
-              Ouvrir le Bot Telegram
+              Ouvrir le Groupe Telegram
             </a>
           </Button>
         </div>
