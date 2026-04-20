@@ -202,6 +202,15 @@
 .animate-fade-in { animation: fade-in 0.6s ease-out both; }
 .animate-scale-in { animation: scale-in 0.4s var(--ease-luxe) both; }
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* -- Page transitions ------------------------------------------- */
 @keyframes page-enter-kf {
   from { opacity: 0; transform: translateY(14px); }
@@ -220,4 +229,16 @@
 .page-exit {
   animation: page-exit-kf 0.18s ease-in both;
   pointer-events: none;
+}
+
+/* Global mobile scrollbar removal */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
 }
